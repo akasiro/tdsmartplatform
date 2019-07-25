@@ -1,0 +1,5 @@
+l1 = []
+
+l2 = ['part-00000-5b7600b0-5f5c-4232-beaf-c7af678c3b41-c000.csv_624', 'part-00000-87aab6dc-17e0-469e-bce9-0e7abf8b855b-c000.csv_753', 'part-00000-3aace780-b24b-4c8a-ab6e-9dde5feb306a-c000.csv_973', 'part-00000-deaf5dd7-e1c3-44fd-bc68-cc9c4f1175e9-c000.csv_398', 'part-00000-9138f83b-38f0-4b32-a643-e41bfc337e36-c000.csv_580', 'part-00000-e1af1cc3-2e0e-4d49-80c8-c57577f27b88-c000.csv_276', 'part-00000-532aff93-e519-4f3c-a53e-228b4b10e45b-c000.csv_671', 'part-00000-ab9b1fc9-8ddf-4404-86e1-fc45fe39086f-c000.csv_269', 'part-00000-ddb1b719-c33d-4c1d-903b-ace889669045-c000.csv_275', 'part-00000-74ba1231-9fd3-4227-9588-2dcd36416f81-c000.csv_956']
+
+date = "20170630"
