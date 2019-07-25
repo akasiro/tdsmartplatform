@@ -1,0 +1,4 @@
+# tdcode20190725categoryperfdemand.py
+用来计算category层面游戏的需求特点以及游戏的绩效
+# tdcode20190725gameleveldemand.py
+用来计算game层面的游戏的需求特征
