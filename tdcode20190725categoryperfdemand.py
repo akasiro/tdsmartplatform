@@ -122,10 +122,9 @@ def gettotal_user_num(df):
 
 #用于计算游戏与用户id的对应关系表
 def getgame_tdid(df):
-    df = df[['pkgName','appHash','type_code','tdid','is_active']].drop_duplicates(subset = ['appHash','tdid'])
-    df = df.dropna(subset = ['pkgName'])
+    df = df[['pkgName','tdid','type_code','is_active']].dropna(subset=['type_code'])
     dfgame = df[df['type_code'].str.contains(r'T2\d*')]
-    dfgame = dfgame.reset_index().drop(['index'], axis = 1)
+    dfgame = dfgame.drop_duplicates()
     return dfgame
 
 
@@ -136,18 +135,19 @@ def calperf(df,date = 20170131):
     #g1用于计算月活跃率，根据talking data的定义月活跃率为当月活跃的用户数，此处得到的最终结果dataframe为mau
     df_g1 = dfgame[dfgame['is_active'] == True]
     g1 = df_g1.groupby(['type_code','pkgName'])
-    g1_mau = g1.agg({'appHash':'nunique'})
+    g1_mau = g1.agg({'tdid':'nunique'})
     mau = g1_mau.reset_index()
-    mau['user_num'] = user_num
-    mau.rename(columns = {'appHash':'active_num'},inplace = True)
+#     mau['user_num'] = user_num
+    mau.rename(columns = {'tdid':'active_num'},inplace = True)
     #g2用于计算覆盖率，根据talking data的定义为安装的用户数，最终得到的dataframe为cover
     g2 = dfgame.groupby(['type_code','pkgName'])
-    g2_cover = g2.agg({'appHash':'nunique'})
+    g2_cover = g2.agg({'tdid':'nunique'})
     cover = g2_cover.reset_index()
-    #cover['user_num'] = user_num
-    cover.rename(columns = {'appHash':'cover_num'},inplace = True)
+    cover['user_num'] = user_num
+    cover.rename(columns = {'tdid':'cover_num'},inplace = True)
     #将两个表合并到一个表
     perf = pd.merge(mau,cover,on = ['pkgName','type_code'],how = 'outer')
+#     perf['active_num'] = perf['active_num'].fillna(0)
     #计算月活跃率和覆盖率
     perf['mau'] = perf['active_num']/perf['user_num']
     perf['coverage'] = perf['cover_num']/perf['user_num']
@@ -156,61 +156,58 @@ def calperf(df,date = 20170131):
     perf['date'] = date
     return perf
 
-#=====================
-#合并结果
-#=====================
-def perf_demand(df, date = 20170131):
-    demand = demand_attr(df, date = date)
-    perf = calperf(df,date = date)
-    index_type_game = gettype_hash(df)
-
-    saveindex(index_type_game, date = date)
-    #分两步合并
-    #第一步合并index和绩效
-    part1 = pd.merge(index_type_game,perf, on = ['pkgName','type_code'])
-    #第二步合并并入demand
-    result = pd.merge(part1, demand, on = ['type_code','date'])
-    
-    return result
-
-
-#======================
-#保存结果
-#======================
-def saveresult(result, date = 20170131):
-    filename = os.path.join(documentpath,'{}.csv'.format(date))
-    result.to_csv(filename)
-
-def saveindex(index_type_game, date = 20170131):
-    filename = os.path.join(documentpath,'{}index.csv'.format(date))
-    index_type_game.to_csv(filename)
+def calmau(df,date = 20170131):
+    user_num = gettotal_user_num(df)
+    dfgame = getgame_tdid(df)
+    #g1用于计算月活跃率，根据talking data的定义月活跃率为当月活跃的用户数，此处得到的最终结果dataframe为mau
+    df_g1 = dfgame[dfgame['is_active'] == True]
+    g1 = df_g1.groupby(['type_code','pkgName'])
+    g1_mau = g1.agg({'tdid':'nunique'})
+    mau = g1_mau.reset_index()
+    mau['user_num'] = user_num
+    mau.rename(columns = {'tdid':'active_num'},inplace = True)
+    mau['mau'] = mau['active_num']/mau['user_num']
+    mau['date'] = date
+    return mau
+def calcover(df, date = 20170131):
+    user_num = gettotal_user_num(df)
+    dfgame = getgame_tdid(df)
+    #g2用于计算覆盖率，根据talking data的定义为安装的用户数，最终得到的dataframe为cover
+    g2 = dfgame.groupby(['type_code','pkgName'])
+    g2_cover = g2.agg({'tdid':'nunique'})
+    cover = g2_cover.reset_index()
+    cover['user_num'] = user_num
+    cover.rename(columns = {'tdid':'cover_num'},inplace = True)
+    cover['coverage'] = cover['cover_num']/cover['user_num']
+    cover['date'] = date
+    return cover
 #=====================
 #主程序
 #=======================
 def mainfunc(l_header,l_noheader,date):
     df = read_merge_df(l_header,l_noheader)
-    demand = demand_attr(df, date = date)
+#     demand = demand_attr(df, date = date)
     perf = calperf(df,date = date)
-    index_type_game = gettype_hash(df)
-    demand.to_csv(os.path.join(documentpath,'demand_category','{}demandcategory.csv'.format(date)))
-    print('demand table')
-    print(demand.shape)
-    print(demand.columns)
+#     index_type_game = gettype_hash(df)
+#     demand.to_csv(os.path.join(documentpath,'demand_category','{}demandcategory.csv'.format(date)))
+#     print('demand table')
+#     print(demand.shape)
+#     print(demand.columns)
     perf.to_csv(os.path.join(documentpath,'perf','{}perf.csv'.format(date)))
     print('perf table')
     print(perf.shape)
     print(perf.columns)
-    index_type_game.to_csv(os.path.join(documentpath,'index','{}index.csv'.format(date)))
-    print('index table')
-    print(index.shape)
-    print(index.columns)
+#     index_type_game.to_csv(os.path.join(documentpath,'index','{}index.csv'.format(date)))
+#     print('index table')
+#     print(index_type_game.shape)
+#     print(index_type_game.columns)
 #     #测试用存储
 #     demand.to_csv(os.path.join(documentpath,'test','{}demandcategory.csv'.format(date)))
 #     perf.to_csv(os.path.join(documentpath,'test','{}perf.csv'.format(date)))
 #     index_type_game.to_csv(os.path.join(documentpath,'test','{}index.csv'.format(date)))
 #     #测试用存储结束
     print('success {}'.format(date))
-    return [demand,perf,index_type_game]
+    return perf
 
 
 
@@ -225,3 +222,19 @@ def mainfunc(l_header,l_noheader,date):
 
 # r = mainfunc(l1,l2,date)
 
+def mainfunc2(l_header,l_noheader,date):
+    df = read_merge_df(l_header,l_noheader)
+    mau = calmau(df,date = date)
+    mau.to_csv(os.path.join(documentpath,'mau','{}mau.csv'.format(date)))
+    print('mau table')
+    print(mau.shape)
+    print(mau.columns)
+    return mau
+def mainfunc3(l_header,l_noheader,date):
+    df = read_merge_df(l_header,l_noheader)
+    cover = calcover(df,date = date)
+    cover.to_csv(os.path.join(documentpath,'cover','{}cover.csv'.format(date)))
+    print('cover table')
+    print(cover.shape)
+    print(cover.columns)
+    return cover

@@ -1,4 +1,8 @@
 # tdcode20190725categoryperfdemand.py
 用来计算category层面游戏的需求特点以及游戏的绩效
+这个函数没法直接计算所有变量
+需要分别计算绩效、需求和index
+一月份只能分割计算无法使用主函数
 # tdcode20190725gameleveldemand.py
 用来计算game层面的游戏的需求特征
+
